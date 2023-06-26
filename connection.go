@@ -191,7 +191,7 @@ func (sc *snowflakeConn) BeginTx(
 		false /* isInternal */, isDesc, nil); err != nil {
 		return nil, err
 	}
-	return &snowflakeTx{sc}, nil
+	return &snowflakeTx{sc, ctx}, nil
 }
 
 func (sc *snowflakeConn) cleanup() {
@@ -209,7 +209,7 @@ func (sc *snowflakeConn) Close() (err error) {
 	sc.stopHeartBeat()
 	defer sc.cleanup()
 
-	if !sc.cfg.KeepSessionAlive {
+	if sc.cfg != nil && !sc.cfg.KeepSessionAlive {
 		if err = sc.rest.FuncCloseSession(sc.ctx, sc.rest, sc.rest.RequestTimeout); err != nil {
 			logger.Error(err)
 		}
@@ -249,9 +249,9 @@ func (sc *snowflakeConn) ExecContext(
 	if err != nil {
 		logger.WithContext(ctx).Infof("error: %v", err)
 		if data != nil {
-			code, err := strconv.Atoi(data.Code)
-			if err != nil {
-				return nil, err
+			code, e := strconv.Atoi(data.Code)
+			if e != nil {
+				return nil, e
 			}
 			return nil, (&SnowflakeError{
 				Number:   code,
@@ -328,9 +328,9 @@ func (sc *snowflakeConn) queryContextInternal(
 	if err != nil {
 		logger.WithContext(ctx).Errorf("error: %v", err)
 		if data != nil {
-			code, err := strconv.Atoi(data.Code)
-			if err != nil {
-				return nil, err
+			code, e := strconv.Atoi(data.Code)
+			if e != nil {
+				return nil, e
 			}
 			return nil, (&SnowflakeError{
 				Number:   code,
@@ -434,9 +434,9 @@ func (sc *snowflakeConn) QueryArrowStream(ctx context.Context, query string, bin
 	if err != nil {
 		logger.WithContext(ctx).Errorf("error: %v", err)
 		if data != nil {
-			code, err := strconv.Atoi(data.Code)
-			if err != nil {
-				return nil, err
+			code, e := strconv.Atoi(data.Code)
+			if e != nil {
+				return nil, e
 			}
 			return nil, (&SnowflakeError{
 				Number:   code,

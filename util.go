@@ -5,12 +5,14 @@ package gosnowflake
 import (
 	"context"
 	"database/sql/driver"
+	"fmt"
 	"io"
+	"os"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/apache/arrow/go/v11/arrow/memory"
+	"github.com/apache/arrow/go/v12/arrow/memory"
 )
 
 type contextKey string
@@ -221,4 +223,15 @@ func escapeForCSV(value string) string {
 		return "\"" + strings.ReplaceAll(value, "\"", "\"\"") + "\""
 	}
 	return value
+}
+
+// GetFromEnv is used to get the value of an environment variable from the system
+func GetFromEnv(name string, failOnMissing bool) (string, error) {
+	if value := os.Getenv(name); value != "" {
+		return value, nil
+	}
+	if failOnMissing {
+		return "", fmt.Errorf("%v environment variable is not set", name)
+	}
+	return "", nil
 }
